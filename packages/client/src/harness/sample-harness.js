@@ -70,6 +70,8 @@ export default class SampleHarness extends LitElement {
           method="post" fields="signer recipient amount">
           <account-widget field="signer" label="Account">
           </account-widget>
+          <account-widget field="recipient" label="Account">
+          </account-widget>
           <text-widget field="amount" label="Amount" placeholder="30.0"></text-widget>
         </action-card>
 

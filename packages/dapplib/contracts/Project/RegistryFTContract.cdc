@@ -3,7 +3,7 @@ import RegistryService from Project.RegistryService
 import FungibleToken from Flow.FungibleToken
 
 
-pub contract RegistrySampleContract: RegistryInterface, FungibleToken {
+pub contract RegistryFTContract: RegistryInterface, FungibleToken {
 
     // Maps an address (of the customer/DappContract) to the amount
     // of tenants they have for a specific RegistryContract.
@@ -11,7 +11,6 @@ pub contract RegistrySampleContract: RegistryInterface, FungibleToken {
 
     pub resource interface ITenant {
         pub fun minterRef(): &Minter
-        pub fun vaultRef(): &Vault
     }
    
     // Tenant
@@ -23,24 +22,17 @@ pub contract RegistrySampleContract: RegistryInterface, FungibleToken {
     // 
     pub resource Tenant: ITenant {
         access(self) let minter: @Minter
-        access(self) let vault: @Vault
 
         pub fun minterRef(): &Minter {
             return &self.minter as &Minter
         }
 
-        pub fun vaultRef(): &Vault {
-            return &self.vault as &Vault
-        }
-
         init() {
             self.minter <- create Minter()
-            self.vault <- RegistrySampleContract.createEmptyVault()
         }
 
         destroy() {
             destroy self.minter
-            destroy self.vault
         }
     }
 
@@ -142,7 +134,7 @@ pub contract RegistrySampleContract: RegistryInterface, FungibleToken {
         // was a temporary holder of the tokens. The Vault's balance has
         // been consumed and therefore can be destroyed.
         pub fun deposit(from: @FungibleToken.Vault) {
-            let vault <- from as! @RegistrySampleContract.Vault
+            let vault <- from as! @RegistryFTContract.Vault
             self.balance = self.balance + vault.balance
             emit TokensDeposited(amount: vault.balance, to: self.owner?.address)
             vault.balance = 0.0
@@ -150,7 +142,7 @@ pub contract RegistrySampleContract: RegistryInterface, FungibleToken {
         }
 
         destroy() {
-            RegistrySampleContract.totalSupply = RegistrySampleContract.totalSupply - self.balance
+            RegistryFTContract.totalSupply = RegistryFTContract.totalSupply - self.balance
             if(self.balance > 0.0) {
                 emit TokensBurned(amount: self.balance)
             }
@@ -167,12 +159,12 @@ pub contract RegistrySampleContract: RegistryInterface, FungibleToken {
         // Function that mints new tokens, adds them to the total supply,
         // and returns them to the calling context.
         //
-        pub fun mintTokens(amount: UFix64): @RegistrySampleContract.Vault {
+        pub fun mintTokens(amount: UFix64): @RegistryFTContract.Vault {
             pre {
                 amount > UFix64(0): "Amount minted must be greater than zero"
                 amount <= self.allowedAmount: "Amount minted must be less than the allowed amount"
             }
-            RegistrySampleContract.totalSupply = RegistrySampleContract.totalSupply + amount
+            RegistryFTContract.totalSupply = RegistryFTContract.totalSupply + amount
             self.allowedAmount = self.allowedAmount - amount
             emit TokensMinted(amount: amount)
             return <-create Vault(balance: amount)
@@ -193,12 +185,12 @@ pub contract RegistrySampleContract: RegistryInterface, FungibleToken {
         self.clientTenants = {}
 
         // Set Named paths
-        self.TenantStoragePath = /storage/RegistrySampleContractTenant
-        self.TenantPublicPath = /public/RegistrySampleContractTenant
-        self.VaultStoragePath = /storage/RegistrySampleContractVault
-        self.ReceiverPublicPath = /public/RegistrySampleContractReceiver
-        self.BalancePublicPath = /public/RegistrySampleContractBalance
-        self.MinterStoragePath = /storage/RegistrySampleContractMinter
+        self.TenantStoragePath = /storage/RegistryFTContractTenant
+        self.TenantPublicPath = /public/RegistryFTContractTenant
+        self.VaultStoragePath = /storage/RegistryFTContractVault
+        self.ReceiverPublicPath = /public/RegistryFTContractReceiver
+        self.BalancePublicPath = /public/RegistryFTContractBalance
+        self.MinterStoragePath = /storage/RegistryFTContractMinter
 
         emit TokensInitialized(initialSupply: 0.0) 
     }

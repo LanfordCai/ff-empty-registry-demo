@@ -9,42 +9,44 @@ module.exports = class DappTransactions {
 
 	static project_donate() {
 		return fcl.transaction`
-				import Faucet from 0x01cf0e2f2f715450
-				import RegistrySampleContract from 0x01cf0e2f2f715450
 				
+				import Faucet from 0x01cf0e2f2f715450
+				import RegistryFTContract from 0x01cf0e2f2f715450
 				
 				transaction(amount: UFix64) {
-				    let receiverRef: &{FungibleToken.Receiver}
-				
+				    let tenant: &RegistryFTContract.Tenant{RegistryFTContract.ITenant}
+				    let vault: &RegistryFTContract.Vault
+				    let donater: Address
 				    prepare(signer: AuthAccount) {
-				        // Get a reference to the recipient's Receiver
-				        self.receiverRef = signer.getCapability(RegistrySampleContract.ReceiverPublicPath)
-				                            .borrow<&{FungibleToken.Receiver}>()
-							                ?? panic("Could not borrow receiver reference to the recipient's Vault")
+				        self.tenant = signer.borrow<&RegistryFTContract.Tenant{RegistryFTContract.ITenant}>(from: RegistryFTContract.TenantStoragePath)
+				                                ?? panic("Unable to borrow tenant")
+				        self.vault = signer.borrow<&RegistryFTContract.Vault>(from: RegistryFTContract.VaultStoragePath)
+							?? panic("Could not borrow reference to the owner's Vault!")
+				        self.donater = signer.address
 				    }
-				
 				    execute {
-				        let vault <- Faucet.take(amount: amount)
-				        self.receiverRef.deposit(from: vault)
+				        let amt <- self.vault.withdraw(amount: amount)
+				        Faucet.donate(donater: self.donater, from: <- amt)
 				    }
 				}
+				
 		`;
 	}
 
 	static project_mint_tokens() {
 		return fcl.transaction`
 				import FungibleToken from 0x01cf0e2f2f715450
-				import RegistrySampleContract from 0x01cf0e2f2f715450
+				import RegistryFTContract from 0x01cf0e2f2f715450
 				
 				transaction(recipient: Address, amount: UFix64) {
-				    let tenant: &RegistrySampleContract.Tenant{RegistrySampleContract.ITenant}
+				    let tenant: &RegistryFTContract.Tenant{RegistryFTContract.ITenant}
 				    let tokenReceiver: &{FungibleToken.Receiver}
 				
 				    prepare(signer: AuthAccount) {
-				        self.tenant = signer.borrow<&RegistrySampleContract.Tenant{RegistrySampleContract.ITenant}>(from: RegistrySampleContract.TenantStoragePath)
+				        self.tenant = signer.borrow<&RegistryFTContract.Tenant{RegistryFTContract.ITenant}>(from: RegistryFTContract.TenantStoragePath)
 				                                ?? panic("Unable to borrow tenant")
 				
-				        self.tokenReceiver = getAccount(recipient).getCapability(RegistrySampleContract.ReceiverPublicPath)
+				        self.tokenReceiver = getAccount(recipient).getCapability(RegistryFTContract.ReceiverPublicPath)
 				                                .borrow<&{FungibleToken.Receiver}>()
 				                                ?? panic("Unable to borrow receiver reference")
 				    }
@@ -61,18 +63,18 @@ module.exports = class DappTransactions {
 	static project_take_tokens() {
 		return fcl.transaction`
 				import FungibleToken from 0x01cf0e2f2f715450
-				import RegistrySampleContract from 0x01cf0e2f2f715450
+				import RegistryFTContract from 0x01cf0e2f2f715450
 				import Faucet from 0x01cf0e2f2f715450
 				
 				transaction(amount: UFix64) {
-				    let tenant: &RegistrySampleContract.Tenant{RegistrySampleContract.ITenant}
+				    let tenant: &RegistryFTContract.Tenant{RegistryFTContract.ITenant}
 				    let tokenReceiver: &{FungibleToken.Receiver}
 				
 				    prepare(signer: AuthAccount) {
-				        self.tenant = signer.borrow<&RegistrySampleContract.Tenant{RegistrySampleContract.ITenant}>(from: RegistrySampleContract.TenantStoragePath)
+				        self.tenant = signer.borrow<&RegistryFTContract.Tenant{RegistryFTContract.ITenant}>(from: RegistryFTContract.TenantStoragePath)
 				                                ?? panic("Unable to borrow tenant")
 				
-				        self.tokenReceiver = signer.getCapability(RegistrySampleContract.ReceiverPublicPath)
+				        self.tokenReceiver = signer.getCapability(RegistryFTContract.ReceiverPublicPath)
 				                                .borrow<&{FungibleToken.Receiver}>()
 				                                ?? panic("Unable to borrow receiver reference")
 				    }
@@ -120,11 +122,11 @@ module.exports = class DappTransactions {
 
 	static registry_receive_tenant() {
 		return fcl.transaction`
-				import RegistrySampleContract from 0x01cf0e2f2f715450
+				import RegistryFTContract from 0x01cf0e2f2f715450
 				import RegistryService from 0x01cf0e2f2f715450
 				
 				// This transaction allows any Tenant to receive a Tenant Resource from
-				// RegistrySampleContract. It saves the resource to account storage.
+				// RegistryFTContract. It saves the resource to account storage.
 				//
 				// Note that this can only be called by someone who has already registered
 				// with the RegistryService and received an AuthNFT.
@@ -133,13 +135,13 @@ module.exports = class DappTransactions {
 				
 				  prepare(signer: AuthAccount) {
 				    // save the Tenant resource to the account if it doesn't already exist
-				    if signer.borrow<&RegistrySampleContract.Tenant{RegistrySampleContract.ITenant}>(from: RegistrySampleContract.TenantStoragePath) == nil {
+				    if signer.borrow<&RegistryFTContract.Tenant{RegistryFTContract.ITenant}>(from: RegistryFTContract.TenantStoragePath) == nil {
 				      // borrow a reference to the AuthNFT in account storage
 				      let authNFTRef = signer.borrow<&RegistryService.AuthNFT>(from: RegistryService.AuthStoragePath)
 				                        ?? panic("Could not borrow the AuthNFT")
 				      
-				      // save the new Tenant resource from RegistrySampleContract to account storage
-				      signer.save(<-RegistrySampleContract.instance(authNFT: authNFTRef), to: RegistrySampleContract.TenantStoragePath)
+				      // save the new Tenant resource from RegistryFTContract to account storage
+				      signer.save(<-RegistryFTContract.instance(authNFT: authNFTRef), to: RegistryFTContract.TenantStoragePath)
 				
 				      // link the Tenant resource to the public
 				      //
@@ -148,12 +150,12 @@ module.exports = class DappTransactions {
 				      // If you add resource interfaces that Tenant must implement, you can
 				      // add those here and then uncomment the line below.
 				      // 
-				      signer.link<&RegistrySampleContract.Tenant{RegistrySampleContract.ITenant}>(RegistrySampleContract.TenantPublicPath, target: RegistrySampleContract.TenantStoragePath)
+				      signer.link<&RegistryFTContract.Tenant{RegistryFTContract.ITenant}>(RegistryFTContract.TenantPublicPath, target: RegistryFTContract.TenantStoragePath)
 				    }
 				  }
 				
 				  execute {
-				    log("Registered a new Tenant for RegistrySampleContract.")
+				    log("Registered a new Tenant for RegistryFTContract.")
 				  }
 				}
 				
@@ -163,32 +165,32 @@ module.exports = class DappTransactions {
 	static registry_setup_account() {
 		return fcl.transaction`
 				import FungibleToken from 0x01cf0e2f2f715450
-				import RegistrySampleContract from 0x01cf0e2f2f715450
+				import RegistryFTContract from 0x01cf0e2f2f715450
 				
 				// This transaction is a template for a transaction
 				// to add a Vault resource to their account
-				// so that they can use the RegistrySampleContract
+				// so that they can use the RegistryFTContract
 				
 				transaction {
 				
 				    prepare(signer: AuthAccount) {
 				
-				        if signer.borrow<&RegistrySampleContract.Vault>(from: RegistrySampleContract.VaultStoragePath) == nil {
-				            // Create a new RegistrySampleContract Vault and put it in storage
-				            signer.save(<-RegistrySampleContract.createEmptyVault(), to: RegistrySampleContract.VaultStoragePath)
+				        if signer.borrow<&RegistryFTContract.Vault>(from: RegistryFTContract.VaultStoragePath) == nil {
+				            // Create a new RegistryFTContract Vault and put it in storage
+				            signer.save(<-RegistryFTContract.createEmptyVault(), to: RegistryFTContract.VaultStoragePath)
 				
 				            // Create a public capability to the Vault that only exposes
 				            // the deposit function through the Receiver interface
-				            signer.link<&RegistrySampleContract.Vault{FungibleToken.Receiver}>(
-				                RegistrySampleContract.ReceiverPublicPath,
-				                target: RegistrySampleContract.VaultStoragePath
+				            signer.link<&RegistryFTContract.Vault{FungibleToken.Receiver}>(
+				                RegistryFTContract.ReceiverPublicPath,
+				                target: RegistryFTContract.VaultStoragePath
 				            )
 				
 				            // Create a public capability to the Vault that only exposes
 				            // the balance field through the Balance interface
-				            signer.link<&RegistrySampleContract.Vault{FungibleToken.Balance}>(
-				                RegistrySampleContract.BalancePublicPath,
-				                target: RegistrySampleContract.VaultStoragePath
+				            signer.link<&RegistryFTContract.Vault{FungibleToken.Balance}>(
+				                RegistryFTContract.BalancePublicPath,
+				                target: RegistryFTContract.VaultStoragePath
 				            )
 				        }
 				    }

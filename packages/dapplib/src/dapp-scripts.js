@@ -30,13 +30,13 @@ module.exports = class DappScripts {
 	static registry_get_balance() {
 		return fcl.script`
 				import FungibleToken from 0x01cf0e2f2f715450
-				import RegistrySampleContract from 0x01cf0e2f2f715450
+				import RegistryFTContract from 0x01cf0e2f2f715450
 				
 				pub fun main(account: Address): UFix64 {
 				
 				    let vaultRef = getAccount(account)
-				        .getCapability(RegistrySampleContract.BalancePublicPath)
-				        .borrow<&RegistrySampleContract.Vault{FungibleToken.Balance}>()
+				        .getCapability(RegistryFTContract.BalancePublicPath)
+				        .borrow<&RegistryFTContract.Vault{FungibleToken.Balance}>()
 				        ?? panic("Could not borrow Balance reference to the Vault")
 				
 				    return vaultRef.balance
