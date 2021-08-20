@@ -11,7 +11,7 @@ transaction() {
 
   prepare(signer: AuthAccount) {
     // save the Tenant resource to the account if it doesn't already exist
-    if signer.borrow<&RegistrySampleContract.Tenant>(from: RegistrySampleContract.TenantStoragePath) == nil {
+    if signer.borrow<&RegistrySampleContract.Tenant{RegistrySampleContract.ITenant}>(from: RegistrySampleContract.TenantStoragePath) == nil {
       // borrow a reference to the AuthNFT in account storage
       let authNFTRef = signer.borrow<&RegistryService.AuthNFT>(from: RegistryService.AuthStoragePath)
                         ?? panic("Could not borrow the AuthNFT")

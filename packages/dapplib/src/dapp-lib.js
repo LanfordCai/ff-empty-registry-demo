@@ -96,12 +96,55 @@ module.exports = class DappLib {
     let result = await Blockchain.post({
       config: DappLib.getConfig(),
       roles: {
-        proposer: data.signer,
+        proposer: data.signer
       }
     },
       'registry_setup_account'
     );
 
+    return {
+      type: DappLib.DAPP_RESULT_TX_HASH,
+      label: 'Transaction Hash',
+      result: result.callData.transactionId
+    }
+  }
+
+  static async mintTokens(data) {
+
+    let config = DappLib.getConfig()
+    let result = await Blockchain.post({
+      config: config,
+      roles: {
+        proposer: data.signer
+      }
+    },
+      'project_mint_tokens',
+      {
+        recipient: { value: data.recipient, type: t.Address },
+        amount: { value: data.amount, type: t.UFix64 }
+      }
+    );
+    return {
+      type: DappLib.DAPP_RESULT_TX_HASH,
+      label: 'Transaction Hash',
+      result: result.callData.transactionId
+    }
+  }
+
+  static async donate(data) {
+
+    let config = DappLib.getConfig()
+    let result = await Blockchain.post({
+      config: config,
+      roles: {
+        proposer: data.signer
+      }
+    },
+      'project_donate',
+      {
+        amount: { value: data.amount, type: t.UFix64 }
+      }
+    );
     return {
       type: DappLib.DAPP_RESULT_TX_HASH,
       label: 'Transaction Hash',

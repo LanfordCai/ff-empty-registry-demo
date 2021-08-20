@@ -7,6 +7,63 @@ const fcl = require("@onflow/fcl");
 
 module.exports = class DappTransactions {
 
+	static project_donate() {
+		return fcl.transaction`
+				import Faucet from 0x01cf0e2f2f715450
+				import RegistrySampleContract from 0x01cf0e2f2f715450
+				
+				
+				transaction(amount: UFix64) {
+				    let tenant: &RegistrySampleContract.Tenant{RegistrySampleContract.ITenant}
+				    let vault: &RegistrySampleContract.Vault
+				    let donater: Address
+				
+				    prepare(signer: AuthAccount) {
+				        self.tenant = signer.borrow<&RegistrySampleContract.Tenant{RegistrySampleContract.ITenant}>(from: RegistrySampleContract.TenantStoragePath)
+				                                ?? panic("Unable to borrow tenant")
+				
+				        self.vault = signer.borrow<&RegistrySampleContract.Vault>(from: RegistrySampleContract.VaultStoragePath)
+							?? panic("Could not borrow reference to the owner's Vault!")
+				
+				        self.donater = signer.address
+				    }
+				
+				    execute {
+				        let amt <- self.vault.withdraw(amount: amount)
+				
+				        Faucet.donate(donater: self.donater, from: <- amt)
+				    }
+				}
+		`;
+	}
+
+	static project_mint_tokens() {
+		return fcl.transaction`
+				import FungibleToken from 0x01cf0e2f2f715450
+				import RegistrySampleContract from 0x01cf0e2f2f715450
+				
+				transaction(recipient: Address, amount: UFix64) {
+				    let tenant: &RegistrySampleContract.Tenant{RegistrySampleContract.ITenant}
+				    let tokenReceiver: &{FungibleToken.Receiver}
+				
+				    prepare(signer: AuthAccount) {
+				        self.tenant = signer.borrow<&RegistrySampleContract.Tenant{RegistrySampleContract.ITenant}>(from: RegistrySampleContract.TenantStoragePath)
+				                                ?? panic("Unable to borrow tenant")
+				
+				        self.tokenReceiver = getAccount(recipient).getCapability(RegistrySampleContract.ReceiverPublicPath)
+				                                .borrow<&{FungibleToken.Receiver}>()
+				                                ?? panic("Unable to borrow receiver reference")
+				    }
+				
+				    execute {
+				        let mintedVault <- self.tenant.minterRef().mintTokens(amount: amount)
+				
+				        self.tokenReceiver.deposit(from: <-mintedVault)
+				    }
+				}
+		`;
+	}
+
 	static registry_receive_auth_nft() {
 		return fcl.transaction`
 				import RegistryService from 0x01cf0e2f2f715450
@@ -54,7 +111,7 @@ module.exports = class DappTransactions {
 				
 				  prepare(signer: AuthAccount) {
 				    // save the Tenant resource to the account if it doesn't already exist
-				    if signer.borrow<&RegistrySampleContract.Tenant>(from: RegistrySampleContract.TenantStoragePath) == nil {
+				    if signer.borrow<&RegistrySampleContract.Tenant{RegistrySampleContract.ITenant}>(from: RegistrySampleContract.TenantStoragePath) == nil {
 				      // borrow a reference to the AuthNFT in account storage
 				      let authNFTRef = signer.borrow<&RegistryService.AuthNFT>(from: RegistryService.AuthStoragePath)
 				                        ?? panic("Could not borrow the AuthNFT")

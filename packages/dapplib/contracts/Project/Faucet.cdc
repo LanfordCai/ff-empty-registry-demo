@@ -11,8 +11,7 @@ pub contract Faucet {
     access(contract) let vault: @RegistrySampleContract.Vault
 
     // Anyone can donate to this faucet
-    pub fun donate(from: @RegistrySampleContract.Vault) {
-        let donater = from.owner!.address
+    pub fun donate(donater: Address, from: @FungibleToken.Vault) {
         if let balance = self.donateRecords[donater] {
             self.donateRecords[donater] = balance + from.balance
         } else {

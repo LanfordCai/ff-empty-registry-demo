@@ -65,6 +65,20 @@ export default class SampleHarness extends LitElement {
           <account-widget field="account" label="Account">
           </account-widget>
         </action-card>
+
+        <action-card title="Mint Tokens" description="Mint tokens into an account" action="mintTokens"
+          method="post" fields="signer recipient amount">
+          <account-widget field="signer" label="Account">
+          </account-widget>
+          <text-widget field="amount" label="Amount" placeholder="30.0"></text-widget>
+        </action-card>
+
+        <action-card title="Donate" description="Donate to faucet" action="donate"
+          method="post" fields="signer amount">
+          <account-widget field="signer" label="Account">
+          </account-widget>
+          <text-widget field="amount" label="Amount" placeholder="30.0"></text-widget>
+        </action-card>
       
       
       </page-body>
