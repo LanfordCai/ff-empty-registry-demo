@@ -152,6 +152,28 @@ module.exports = class DappLib {
     }
   }
 
+
+  static async donatedAmount(data) {
+
+    let result = await Blockchain.get({
+      config: DappLib.getConfig(),
+      roles: {
+      }
+    },
+      'project_donated_amount',
+      {
+        account: { value: data.account, type: t.Address }
+      }
+    );
+
+    return {
+      type: DappLib.DAPP_RESULT_BIG_NUMBER,
+      label: 'Donated Amount',
+      result: result.callData
+    }
+  }
+
+
   /*>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> DAPP LIBRARY  <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<*/
 
   static get DAPP_STATE_CONTRACT() {

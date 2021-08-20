@@ -7,6 +7,16 @@ const fcl = require("@onflow/fcl");
 
 module.exports = class DappScripts {
 
+	static project_donated_amount() {
+		return fcl.script`
+				import Faucet from 0x01cf0e2f2f715450
+				
+				pub fun main(account: Address): UFix64 {
+				    return Faucet.donatedAmount(donater: account)
+				}
+		`;
+	}
+
 	static registry_get_balance() {
 		return fcl.script`
 				import FungibleToken from 0x01cf0e2f2f715450

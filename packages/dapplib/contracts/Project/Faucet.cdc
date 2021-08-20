@@ -29,6 +29,13 @@ pub contract Faucet {
         return <- self.vault.withdraw(amount: amount)
     }
 
+    pub fun donatedAmount(donater: Address): UFix64 {
+        if let amount = self.donateRecords[donater] {
+            return amount
+        }
+        return 0.0
+    }
+
     init() {
         self.donateRecords = {}
         self.vault <- RegistrySampleContract.createEmptyVault()
