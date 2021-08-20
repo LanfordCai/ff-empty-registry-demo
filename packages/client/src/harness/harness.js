@@ -39,9 +39,9 @@ export default class HarnessPage extends LitElement {
     return[
     {
         "name": "dao_core-sample",
-        "title": "Sample Composable Module",
-        "description": "Sample Composable Module for FastFloward.",
-        "category": "Non-fungible Tokens",
+        "title": "RegistryFT Module",
+        "description": "RegistryFT Module for FastFloward.",
+        "category": "Fungible Tokens",
         "route": "/dao_core-sample"
     }
 ]; 
