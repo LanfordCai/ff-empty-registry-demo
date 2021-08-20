@@ -173,6 +173,46 @@ module.exports = class DappLib {
     }
   }
 
+  static async faucetBalance(data) {
+
+    let result = await Blockchain.get({
+      config: DappLib.getConfig(),
+      roles: {
+      }
+    },
+      'project_faucet_balance',
+      {
+      }
+    );
+
+    return {
+      type: DappLib.DAPP_RESULT_BIG_NUMBER,
+      label: 'Faucet Balance',
+      result: result.callData
+    }
+  }
+
+  static async takeTokens(data) {
+    let config = DappLib.getConfig()
+    let result = await Blockchain.post({
+      config: config,
+      roles: {
+        proposer: data.signer
+      }
+    },
+      'project_take_tokens',
+      {
+        amount: { value: data.amount, type: t.UFix64 }
+      }
+    );
+    return {
+      type: DappLib.DAPP_RESULT_TX_HASH,
+      label: 'Transaction Hash',
+      result: result.callData.transactionId
+    }
+  }
+
+
 
   /*>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> DAPP LIBRARY  <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<*/
 

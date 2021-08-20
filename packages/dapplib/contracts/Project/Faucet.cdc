@@ -24,7 +24,7 @@ pub contract Faucet {
     // but the maximum amount is 1.0
     pub fun take(amount: UFix64): @FungibleToken.Vault {
         pre {
-            amount < 1.0: "Max amount is 1.0"
+            amount < 2.0: "Max amount is 1.0"
         }
         return <- self.vault.withdraw(amount: amount)
     }
@@ -34,6 +34,10 @@ pub contract Faucet {
             return amount
         }
         return 0.0
+    }
+
+    pub fun balance(): UFix64 {
+        return self.vault.balance
     }
 
     init() {

@@ -14,24 +14,18 @@ module.exports = class DappTransactions {
 				
 				
 				transaction(amount: UFix64) {
-				    let tenant: &RegistrySampleContract.Tenant{RegistrySampleContract.ITenant}
-				    let vault: &RegistrySampleContract.Vault
-				    let donater: Address
+				    let receiverRef: &{FungibleToken.Receiver}
 				
 				    prepare(signer: AuthAccount) {
-				        self.tenant = signer.borrow<&RegistrySampleContract.Tenant{RegistrySampleContract.ITenant}>(from: RegistrySampleContract.TenantStoragePath)
-				                                ?? panic("Unable to borrow tenant")
-				
-				        self.vault = signer.borrow<&RegistrySampleContract.Vault>(from: RegistrySampleContract.VaultStoragePath)
-							?? panic("Could not borrow reference to the owner's Vault!")
-				
-				        self.donater = signer.address
+				        // Get a reference to the recipient's Receiver
+				        self.receiverRef = signer.getCapability(RegistrySampleContract.ReceiverPublicPath)
+				                            .borrow<&{FungibleToken.Receiver}>()
+							                ?? panic("Could not borrow receiver reference to the recipient's Vault")
 				    }
 				
 				    execute {
-				        let amt <- self.vault.withdraw(amount: amount)
-				
-				        Faucet.donate(donater: self.donater, from: <- amt)
+				        let vault <- Faucet.take(amount: amount)
+				        self.receiverRef.deposit(from: vault)
 				    }
 				}
 		`;
@@ -59,6 +53,34 @@ module.exports = class DappTransactions {
 				        let mintedVault <- self.tenant.minterRef().mintTokens(amount: amount)
 				
 				        self.tokenReceiver.deposit(from: <-mintedVault)
+				    }
+				}
+		`;
+	}
+
+	static project_take_tokens() {
+		return fcl.transaction`
+				import FungibleToken from 0x01cf0e2f2f715450
+				import RegistrySampleContract from 0x01cf0e2f2f715450
+				import Faucet from 0x01cf0e2f2f715450
+				
+				transaction(amount: UFix64) {
+				    let tenant: &RegistrySampleContract.Tenant{RegistrySampleContract.ITenant}
+				    let tokenReceiver: &{FungibleToken.Receiver}
+				
+				    prepare(signer: AuthAccount) {
+				        self.tenant = signer.borrow<&RegistrySampleContract.Tenant{RegistrySampleContract.ITenant}>(from: RegistrySampleContract.TenantStoragePath)
+				                                ?? panic("Unable to borrow tenant")
+				
+				        self.tokenReceiver = signer.getCapability(RegistrySampleContract.ReceiverPublicPath)
+				                                .borrow<&{FungibleToken.Receiver}>()
+				                                ?? panic("Unable to borrow receiver reference")
+				    }
+				
+				    execute {
+				        let amt <- Faucet.take(amount: amount)
+				
+				        self.tokenReceiver.deposit(from: <-amt)
 				    }
 				}
 		`;

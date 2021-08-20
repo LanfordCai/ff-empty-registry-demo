@@ -17,6 +17,16 @@ module.exports = class DappScripts {
 		`;
 	}
 
+	static project_faucet_balance() {
+		return fcl.script`
+				import Faucet from 0x01cf0e2f2f715450
+				
+				pub fun main(): UFix64 {
+				    return Faucet.balance()
+				}
+		`;
+	}
+
 	static registry_get_balance() {
 		return fcl.script`
 				import FungibleToken from 0x01cf0e2f2f715450
