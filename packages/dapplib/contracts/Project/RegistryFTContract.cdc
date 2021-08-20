@@ -171,7 +171,7 @@ pub contract RegistryFTContract: RegistryInterface, FungibleToken {
         }
 
         init() {
-            self.allowedAmount = 1000.0
+            self.allowedAmount = 100000000.0
         }
     }
 
