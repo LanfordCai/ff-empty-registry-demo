@@ -27,7 +27,7 @@ module.exports = class DappScripts {
 		`;
 	}
 
-	static registry_get_balance() {
+	static project_get_balance() {
 		return fcl.script`
 				import FungibleToken from 0x01cf0e2f2f715450
 				import RegistryFTContract from 0x01cf0e2f2f715450

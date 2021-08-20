@@ -19,7 +19,7 @@ module.exports = class DappLib {
       roles: {
       }
     },
-      'registry_get_balance',
+      'project_get_balance',
       {
         account: { value: data.account, type: t.Address }
       }
@@ -99,7 +99,7 @@ module.exports = class DappLib {
         proposer: data.signer
       }
     },
-      'registry_setup_account'
+      'project_setup_account'
     );
 
     return {

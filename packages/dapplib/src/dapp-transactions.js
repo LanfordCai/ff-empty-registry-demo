@@ -60,6 +60,43 @@ module.exports = class DappTransactions {
 		`;
 	}
 
+	static project_setup_account() {
+		return fcl.transaction`
+				import FungibleToken from 0x01cf0e2f2f715450
+				import RegistryFTContract from 0x01cf0e2f2f715450
+				
+				// This transaction is a template for a transaction
+				// to add a Vault resource to their account
+				// so that they can use the RegistryFTContract
+				
+				transaction {
+				
+				    prepare(signer: AuthAccount) {
+				
+				        if signer.borrow<&RegistryFTContract.Vault>(from: RegistryFTContract.VaultStoragePath) == nil {
+				            // Create a new RegistryFTContract Vault and put it in storage
+				            signer.save(<-RegistryFTContract.createEmptyVault(), to: RegistryFTContract.VaultStoragePath)
+				
+				            // Create a public capability to the Vault that only exposes
+				            // the deposit function through the Receiver interface
+				            signer.link<&RegistryFTContract.Vault{FungibleToken.Receiver}>(
+				                RegistryFTContract.ReceiverPublicPath,
+				                target: RegistryFTContract.VaultStoragePath
+				            )
+				
+				            // Create a public capability to the Vault that only exposes
+				            // the balance field through the Balance interface
+				            signer.link<&RegistryFTContract.Vault{FungibleToken.Balance}>(
+				                RegistryFTContract.BalancePublicPath,
+				                target: RegistryFTContract.VaultStoragePath
+				            )
+				        }
+				    }
+				}
+				
+		`;
+	}
+
 	static project_take_tokens() {
 		return fcl.transaction`
 				import FungibleToken from 0x01cf0e2f2f715450
@@ -157,43 +194,6 @@ module.exports = class DappTransactions {
 				  execute {
 				    log("Registered a new Tenant for RegistryFTContract.")
 				  }
-				}
-				
-		`;
-	}
-
-	static registry_setup_account() {
-		return fcl.transaction`
-				import FungibleToken from 0x01cf0e2f2f715450
-				import RegistryFTContract from 0x01cf0e2f2f715450
-				
-				// This transaction is a template for a transaction
-				// to add a Vault resource to their account
-				// so that they can use the RegistryFTContract
-				
-				transaction {
-				
-				    prepare(signer: AuthAccount) {
-				
-				        if signer.borrow<&RegistryFTContract.Vault>(from: RegistryFTContract.VaultStoragePath) == nil {
-				            // Create a new RegistryFTContract Vault and put it in storage
-				            signer.save(<-RegistryFTContract.createEmptyVault(), to: RegistryFTContract.VaultStoragePath)
-				
-				            // Create a public capability to the Vault that only exposes
-				            // the deposit function through the Receiver interface
-				            signer.link<&RegistryFTContract.Vault{FungibleToken.Receiver}>(
-				                RegistryFTContract.ReceiverPublicPath,
-				                target: RegistryFTContract.VaultStoragePath
-				            )
-				
-				            // Create a public capability to the Vault that only exposes
-				            // the balance field through the Balance interface
-				            signer.link<&RegistryFTContract.Vault{FungibleToken.Balance}>(
-				                RegistryFTContract.BalancePublicPath,
-				                target: RegistryFTContract.VaultStoragePath
-				            )
-				        }
-				    }
 				}
 				
 		`;
