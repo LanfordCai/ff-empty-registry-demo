@@ -45,8 +45,15 @@ export default class SampleHarness extends LitElement {
           </account-widget>
         </action-card>
       
-        <action-card title="RegistrySampleContract - Get Tenant"
-          description="Get an instance of a Tenant from RegistrySampleContract to have your own data" action="receiveTenant"
+        <action-card title="RegistryFTContract - Get Tenant"
+          description="Get an instance of a Tenant from RegistryFTContract to have your own data" action="receiveTenant"
+          method="post" fields="signer">
+          <account-widget field="signer" label="Account">
+          </account-widget>
+        </action-card>
+
+        <action-card title="RegistryFTContract - Setup Account"
+          description="Add token paths to account" action="setupAccount"
           method="post" fields="signer">
           <account-widget field="signer" label="Account">
           </account-widget>

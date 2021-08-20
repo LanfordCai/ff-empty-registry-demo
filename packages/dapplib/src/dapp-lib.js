@@ -19,7 +19,7 @@ module.exports = class DappLib {
       roles: {
       }
     },
-      'flowtoken_get_balance',
+      'registry_get_balance',
       {
         account: { value: data.account, type: t.Address }
       }
@@ -88,6 +88,24 @@ module.exports = class DappLib {
       type: DappLib.DAPP_RESULT_BOOLEAN,
       label: 'Has AuthNFT',
       result: result.callData
+    }
+  }
+
+  static async setupAccount(data) {
+
+    let result = await Blockchain.post({
+      config: DappLib.getConfig(),
+      roles: {
+        proposer: data.signer,
+      }
+    },
+      'registry_setup_account'
+    );
+
+    return {
+      type: DappLib.DAPP_RESULT_TX_HASH,
+      label: 'Transaction Hash',
+      result: result.callData.transactionId
     }
   }
 
